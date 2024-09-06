@@ -4,7 +4,9 @@ import { ItemModel } from "./dto/item-model";
 import { ItemReq } from "./dto/item-req";
 import { ItemIdReq } from "./dto/item-id.req";
 import { ItemReponseModel } from "./dto/item-response-model";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags('items')
 @Controller('items')
 export class ItemController {
     constructor(private readonly itemService: ItemService) {}

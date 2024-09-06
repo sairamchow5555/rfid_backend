@@ -3,6 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Config } from './config';
+import { ItemEntity } from './items/item.entity';
+import { ItemModule } from './items/item.module';
 
 const config = new Config();
 
@@ -15,9 +17,10 @@ const config = new Config();
       username: config.username,
       password: config.password,
       database: config.database,
-      entities: [],
+      entities: [ItemEntity],
       synchronize: true,
     }),
+    ItemModule
   ],
   controllers: [AppController],
   providers: [AppService],

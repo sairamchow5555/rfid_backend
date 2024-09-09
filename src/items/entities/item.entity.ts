@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { ItemStatusEnum } from "./dto/item-status-enum";
+import { ItemStatusEnum } from "../dto/item-status-enum";
 
 @Entity('item')
 export class ItemEntity {
@@ -17,6 +17,7 @@ export class ItemEntity {
         name: 'status',
         type: 'enum',
         enum: ItemStatusEnum,
+        default: ItemStatusEnum.Active
     })
     status: ItemStatusEnum;
 }

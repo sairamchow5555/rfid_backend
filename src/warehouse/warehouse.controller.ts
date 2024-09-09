@@ -11,35 +11,36 @@ import { WareHouseService } from './warehouse.service';
 import { WareHouseReq } from './dto/warehouse-req';
 import { WareHouseResponseModel } from './dto/warehouse-response-model';
 import { ApiTags } from '@nestjs/swagger';
+import { WareHouseModel } from './dto/warehouse-model';
 @ApiTags('warehouse')
 @Controller('warehouse')
 export class WareHouseController {
   constructor(private readonly wareHouseService: WareHouseService) {}
 
   // Create a new warehouse
-  @Post()
-  create(@Body() wareHouseDto: WareHouseReq): Promise<WareHouseResponseModel> {
-    return this.wareHouseService.createWareHouse(wareHouseDto);
+  @Post('createWareHouse')
+  create(@Body() dto: WareHouseModel): Promise<WareHouseResponseModel> {
+    return this.wareHouseService.createWareHouse(dto);
   }
 
   // Get all active warehouses
-  @Get()
+  @Post('getAllActiveWareHouses')
   findAll(): Promise<WareHouseResponseModel> {
     return this.wareHouseService.getAllWareHouse();
   }
 
   // Update a warehouse by ID
-  @Patch(':id')
+  @Post('updateWareHouse/:id')
   update(
     @Param('id') id: string,
-    @Body() wareHouseDto: WareHouseReq,
+    @Body() dto: WareHouseModel,
   ): Promise<WareHouseResponseModel> {
-    return this.wareHouseService.updateWareHouse(+id, wareHouseDto);
+    return this.wareHouseService.updateWareHouse(+id, dto);
   }
 
   // Delete a warehouse by ID (change status to InActive)
-  @Delete(':id')
-  remove(@Param('id') id: string): Promise<WareHouseResponseModel> {
+  @Delete('deleteWareHouse:id')
+  remove(@Param('id') id: number): Promise<WareHouseResponseModel> {
     return this.wareHouseService.deleteWareHouse(+id);
   }
 }

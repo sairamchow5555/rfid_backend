@@ -17,12 +17,12 @@ import { ItemService } from './item.service';
 export class ItemController {
   constructor(private readonly itemService: ItemService) {}
 
-  @Post('create')
+  @Post('createItem')
   async createItem(@Body() dto: ItemModel): Promise<ItemReponseModel> {
     return await this.itemService.createItem(dto);
   }
 
-  @Put('update/:id')
+  @Post('updateItem/:id')
   async updateItem(
     @Param('id') id: number,
     @Body() dto: ItemModel,
@@ -30,13 +30,13 @@ export class ItemController {
     return await this.itemService.updateItem(id, dto);
   }
 
-  @Post('allActive')
+  @Post('getallActiveItems')
   async getAllItems(): Promise<ItemReponseModel> {
     return await this.itemService.getAllItems();
   }
 
-  @Delete('delete')
-  async deleteItem(@Body() req: ItemIdReq): Promise<ItemReponseModel> {
-    return await this.itemService.deleteItem(req);
+  @Delete('deleteItems/:id')
+  async deleteItem(@Param('id') id: number): Promise<ItemReponseModel> {
+    return await this.itemService.deleteItem(+id);
   }
 }

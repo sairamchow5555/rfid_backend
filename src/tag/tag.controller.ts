@@ -11,31 +11,32 @@ import { TagService } from './tag.service';
 import { TagReq } from './dto/tag-req';
 import { TagReponseModel } from './dto/tag-response-model';
 import { ApiTags } from '@nestjs/swagger';
+import { TagModel } from './dto/tag-model';
 @ApiTags('tags')
 @Controller('tag')
 export class TagController {
   constructor(private readonly tagService: TagService) {}
 
-  @Post()
-  create(@Body() createTagDto: TagReq): Promise<TagReponseModel> {
-    return this.tagService.createTag(createTagDto);
+  @Post('createTag')
+  create(@Body() dto: TagModel): Promise<TagReponseModel> {
+    return this.tagService.createTag(dto);
   }
 
-  @Get()
+  @Post('getAllOpenTags')
   findAll(): Promise<TagReponseModel> {
     return this.tagService.getAllTag();
   }
 
-  @Patch(':id')
+  @Post('updateTag/:id')
   update(
     @Param('id') id: string,
-    @Body() updateTagDto: TagReq,
+    @Body() updateTagDto: TagModel,
   ): Promise<TagReponseModel> {
     return this.tagService.updateTag(+id, updateTagDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string): Promise<TagReponseModel> {
+  @Delete('deleteTag/:id')
+  remove(@Param('id') id: number): Promise<TagReponseModel> {
     return this.tagService.deleteTag(+id);
   }
 }

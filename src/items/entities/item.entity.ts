@@ -6,7 +6,7 @@ export class ItemEntity {
     @PrimaryGeneratedColumn({
         name: 'item_id',
     })
-    itemId: number;
+    id: number;
 
     @Column('varchar', {
         name: 'item_name',

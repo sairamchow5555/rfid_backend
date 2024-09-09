@@ -24,7 +24,7 @@ export class ItemService {
 
             const savedItem = await this.itemRepository.save(itemObj);
             if (savedItem) {
-                return new ItemReponseModel(true, 1, 'Item Created Successfully', [this.mapEntityToModel(savedItem)]);
+                return new ItemReponseModel(true, 1, 'Item Created Successfully', [savedItem]);
             } else {
                 return new ItemReponseModel(false, 0, 'Failed to Create Item',[]);
             }
@@ -36,7 +36,7 @@ export class ItemService {
     // Update item
     async updateItem(id: number, dto: ItemReq): Promise<ItemReponseModel> {
         try {
-            const item = await this.itemRepository.findOne({ where: { itemId: id } });
+            const item = await this.itemRepository.findOne({ where: {id} });
 
             if (!item) {
                 return new ItemReponseModel(false, 0, 'Item Not Found',[]);
@@ -46,7 +46,7 @@ export class ItemService {
             item.status = dto.status;
 
             const savedItem = await this.itemRepository.save(item);
-            return new ItemReponseModel(true, 1, 'Item Updated Successfully', [this.mapEntityToModel(savedItem)]);
+            return new ItemReponseModel(true, 1, 'Item Updated Successfully', [savedItem]);
         } catch (error) {
             throw new Error('Error occurred while updating Item');
         }
@@ -61,17 +61,16 @@ export class ItemService {
                 return new ItemReponseModel(false, 0, 'No Active Items Found', []);
             }
 
-            const itemModels = items.map(item => this.mapEntityToModel(item));
-            return new ItemReponseModel(true, 1, 'Active Items Retrieved', itemModels);
+            return new ItemReponseModel(true, 1, 'Active Items Retrieved', items);
         } catch (error) {
             throw new Error('Error occurred while retrieving items');
         }
     }
 
     // Delete item (set status to InActive)
-    async deleteItem(req: ItemIdReq): Promise<ItemReponseModel> {
+    async deleteItem(id: number): Promise<ItemReponseModel> {
         try {
-            const item = await this.itemRepository.findOne({ where: { itemId: req.id } });
+            const item = await this.itemRepository.findOne({ where: {id} });
 
             if (!item) {
                 return new ItemReponseModel(false, 0, 'Item Not Found', []);
@@ -80,18 +79,9 @@ export class ItemService {
             item.status = ItemStatusEnum.InActive;
             const updatedItem = await this.itemRepository.save(item);
 
-            return new ItemReponseModel(true, 1, 'Item Deleted (Set to InActive)', [this.mapEntityToModel(updatedItem)]);
+            return new ItemReponseModel(true, 1, 'Item Deleted (Set to InActive)', [updatedItem]);
         } catch (error) {
             throw new Error('Error occurred while deleting item');
         }
-    }
-
-    // Helper function to map Entity to Model
-    private mapEntityToModel(entity: ItemEntity): ItemModel {
-        return {
-            id: entity.itemId,
-            itemName: entity.itemName,
-            status: entity.status
-        };
     }
 }

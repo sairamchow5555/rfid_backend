@@ -9,5 +9,8 @@ export class TagReq{
     tagId: string;
 
     @ApiProperty()
+    tagName: string;
+
+    @ApiProperty()
     status: TagStatusEnum;
 }

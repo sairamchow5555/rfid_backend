@@ -15,78 +15,76 @@ export class TagService {
 
   // Create Tag
   async createTag(dto: TagReq): Promise<TagReponseModel> {
-    try {
-      const tagObj = new TagEntity();
-      tagObj.tagId = dto.tagId;
+    // Check if tagName already exists
+    const existingTag = await this.tagRepository.findOne({
+      where: { tagName: dto.tagName },
+    });
+    if (existingTag) {
+      return new TagReponseModel(false, 409, 'Tag name must be unique', []);
+    }
 
-      const savedTag = await this.tagRepository.save(tagObj);
+    const tagObj = new TagEntity();
+    tagObj.tagId = dto.tagId;
+    tagObj.tagName = dto.tagName;
 
-      if (savedTag) {
-        return new TagReponseModel(true, 1, 'Tag Created Successfully', [
-          savedTag,
-        ]);
-      } else {
-        return new TagReponseModel(false, 0, 'Failed to create tag', []);
-      }
-    } catch (error) {
-      throw new Error('Error occurred while creating tag');
+    const savedTag = await this.tagRepository.save(tagObj);
+
+    if (savedTag) {
+      return new TagReponseModel(true, 201, 'Tag Created Successfully', [savedTag]);
+    } else {
+      return new TagReponseModel(false, 400, 'Failed to create tag', []);
     }
   }
 
   // Get All Open Tags
   async getAllTag(): Promise<TagReponseModel> {
-    try {
-      const tags = await this.tagRepository.find({
-        where: { status: TagStatusEnum.Open },
-      });
-      if (tags.length === 0) {
-        return new TagReponseModel(false, 0, 'No Open tags found', []);
-      }
+    const tags = await this.tagRepository.find({
+      where: { status: TagStatusEnum.Open },
+    });
 
-      return new TagReponseModel(true, 1, 'Open Tags Retrieved', tags);
-    } catch (error) {
-      throw new Error('Error occurred while retrieving tags');
+    if (tags.length === 0) {
+      return new TagReponseModel(false, 404, 'No Open tags found', []);
     }
+
+    return new TagReponseModel(true, 200, 'Open Tags Retrieved', tags);
   }
 
   // Update Tag
   async updateTag(id: number, dto: TagReq): Promise<TagReponseModel> {
-    try {
-      const existingTag = await this.tagRepository.findOne({ where: { id } });
+    const existingTag = await this.tagRepository.findOne({ where: { id } });
 
-      if (!existingTag) {
-        return new TagReponseModel(false, 0, 'Tag not found', []);
-      }
-
-      existingTag.tagId = dto.tagId;
-      existingTag.status = dto.status;
-
-      const updatedTag = await this.tagRepository.save(existingTag);
-      return new TagReponseModel(true, 1, 'Tag Updated Successfully', [
-        updatedTag,
-      ]);
-    } catch (error) {
-      throw new Error('Error occurred while updating Tag');
+    if (!existingTag) {
+      return new TagReponseModel(false, 404, 'Tag not found', []);
     }
+
+    // Check if new tagName already exists (excluding the current tag)
+    const duplicateTag = await this.tagRepository.findOne({
+      where: { tagName: dto.tagName },
+    });
+
+    if (duplicateTag && duplicateTag.id !== id) {
+      return new TagReponseModel(false, 409, 'Tag name must be unique', []);
+    }
+
+    existingTag.tagId = dto.tagId;
+    existingTag.tagName = dto.tagName;
+    existingTag.status = dto.status;
+
+    const updatedTag = await this.tagRepository.save(existingTag);
+    return new TagReponseModel(true, 200, 'Tag Updated Successfully', [updatedTag]);
   }
 
   // Delete (Change status to 'Close')
   async deleteTag(id: number): Promise<TagReponseModel> {
-    try {
-      const tag = await this.tagRepository.findOne({ where: { id } });
+    const tag = await this.tagRepository.findOne({ where: { id } });
 
-      if (!tag) {
-        return new TagReponseModel(false, 0, 'Tag not found', []);
-      }
-
-      tag.status = TagStatusEnum.Close;
-      const updatedTag = await this.tagRepository.save(tag);
-
-      return new TagReponseModel(true, 1, 'Tag Deleted (Status set to Close)', [
-        updatedTag,
-      ]);
-    } catch (error) {
-      throw new Error('Error occurred while deleting Tag');
+    if (!tag) {
+      return new TagReponseModel(false, 404, 'Tag not found', []);
     }
+
+    tag.status = TagStatusEnum.Close;
+    const updatedTag = await this.tagRepository.save(tag);
+
+    return new TagReponseModel(true, 200, 'Tag Deleted (Status set to Close)', [updatedTag]);
   }
 }

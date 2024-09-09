@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { TransitionFlowEntity } from './entities/transition_flow.entity';
 import { TransitionFlowReq } from './dto/transitionflow-req';
 import { TransitionFlowReponseModel } from './dto/transitionflow-response-model';
@@ -25,12 +25,18 @@ export class TransitionFlowService {
     private readonly tagRepository: Repository<TagEntity>,
     @InjectRepository(WareHouseEntity)
     private readonly warehouseRepository: Repository<WareHouseEntity>,
+
+    private dataSource: DataSource,
   ) {}
 
   // Create Transition Flow
   async createTransitionFlow(
     dto: TransitionFlowReq,
   ): Promise<TransitionFlowReponseModel> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
       const warehouse = await this.warehouseRepository.findOne({
         where: { wareHouseName: dto.warehouse },
@@ -80,23 +86,31 @@ export class TransitionFlowService {
       transitionFlow.tag = tag;
       transitionFlow.status = TransitionFlowStatusEnum.Active; // Default status
 
-      const savedTransitionFlow =
-        await this.transitionFlowRepository.save(transitionFlow);
+      const savedTransitionFlow = await queryRunner.manager
+        .getRepository(TransitionFlowEntity)
+        .save(transitionFlow);
 
       // Update the tag status to 'Inprogress'
       tag.status = TagStatusEnum.Inprogress;
-      await this.tagRepository.save(tag);
+      await queryRunner.manager.getRepository(TagEntity).save(tag);
 
+      // Commit the transaction
+      await queryRunner.commitTransaction();
       return new TransitionFlowReponseModel(true, 1, 'Created Successfully', [
         this.mapEntityToModel(savedTransitionFlow),
       ]);
     } catch (error) {
+      // Rollback the transaction if any error occurs
+      await queryRunner.rollbackTransaction();
       console.error(
         'Error occurred while creating Transition Flow:',
         error.message,
         error.stack,
       ); // Log error details
       throw new Error('Error occurred while creating Transition Flow');
+    } finally {
+      // Release the query runner
+      await queryRunner.release();
     }
   }
 

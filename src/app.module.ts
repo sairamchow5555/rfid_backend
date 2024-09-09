@@ -9,6 +9,8 @@ import { ItemEntity } from './items/entities/item.entity';
 import { TagEntity } from './tag/entities/tag.entity';
 import { WareHouseEntity } from './warehouse/entities/warehouse.entity';
 import { WareHouseModule } from './warehouse/warehouse.module';
+import { TransitionFlowModule } from './transition_flow/transition_flow.module';
+import { TransitionFlowEntity } from './transition_flow/entities/transition_flow.entity';
 
 const config = new Config();
 
@@ -21,12 +23,13 @@ const config = new Config();
       username: config.username,
       password: config.password,
       database: config.database,
-      entities: [ItemEntity, TagEntity, WareHouseEntity],
+      entities: [ItemEntity, TagEntity, WareHouseEntity, TransitionFlowEntity],
       synchronize: true,
     }),
     ItemModule,
     TagModule,
-    WareHouseModule
+    WareHouseModule,
+    TransitionFlowModule,
   ],
   controllers: [AppController],
   providers: [AppService],

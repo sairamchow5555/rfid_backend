@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ItemStatusEnum } from "../dto/item-status-enum";
+import { TransitionFlowEntity } from "src/transition_flow/entities/transition_flow.entity";
 
 @Entity('item')
 export class ItemEntity {
@@ -20,4 +21,7 @@ export class ItemEntity {
         default: ItemStatusEnum.Active
     })
     status: ItemStatusEnum;
+
+    @OneToMany(() => TransitionFlowEntity, (transitionFlow) => transitionFlow.item)
+    transitionFlows: TransitionFlowEntity[];
 }

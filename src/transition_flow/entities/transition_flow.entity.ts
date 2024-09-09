@@ -9,6 +9,13 @@ export class TransitionFlowEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
+  @Column({
+    name: 'date_time',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  dateTime: Date;
+
   @ManyToOne(() => WareHouseEntity, (warehouse) => warehouse.transitionFlows, {
     nullable: false,
   })

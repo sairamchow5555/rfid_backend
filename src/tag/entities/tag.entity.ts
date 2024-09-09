@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { TagStatusEnum } from "../dto/tag-status-enum";
+import { TransitionFlowEntity } from "src/transition_flow/entities/transition_flow.entity";
 
 
 @Entity('tag')
@@ -10,7 +11,7 @@ export class TagEntity {
     id: number;
 
     @Column('varchar',{
-        name: 'tagId',
+        name: 'tag_id',
     })
     tagId: string;
 
@@ -21,4 +22,7 @@ export class TagEntity {
         default: TagStatusEnum.Open
     })
     status: TagStatusEnum;
+
+    @OneToMany(() => TransitionFlowEntity, (transitionFlow) => transitionFlow.tag)
+    transitionFlows: TransitionFlowEntity[];
 }

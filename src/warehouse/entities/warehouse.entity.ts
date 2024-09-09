@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { WareHouseStatusEnum } from '../dto/warehouse-status-enum';
+import { TransitionFlowEntity } from 'src/transition_flow/entities/transition_flow.entity';
 @Entity('warehouse')
 export class WareHouseEntity {
   @PrimaryGeneratedColumn({
@@ -8,7 +9,7 @@ export class WareHouseEntity {
   id: number;
 
   @Column('varchar', {
-    name: 'wareHouseName',
+    name: 'warehouse_name',
   })
   wareHouseName: string;
 
@@ -19,4 +20,7 @@ export class WareHouseEntity {
     default: WareHouseStatusEnum.Active,
   })
   status: WareHouseStatusEnum;
+
+  @OneToMany(() => TransitionFlowEntity, (transitionFlow) => transitionFlow.warehouse)
+  transitionFlows: TransitionFlowEntity[];
 }

@@ -1,26 +1,26 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { TransitionFlowStatusEnum } from '../dto/transitionflow-status-enum';
+import { ItemEntity } from 'src/items/entities/item.entity';
+import { TagEntity } from 'src/tag/entities/tag.entity';
+import { WareHouseEntity } from 'src/warehouse/entities/warehouse.entity';
 
 @Entity('transition_flow')
 export class TransitionFlowEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
-  @Column({
-    name: 'date_time',
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
+  @ManyToOne(() => WareHouseEntity, (warehouse) => warehouse.transitionFlows, {
+    nullable: false,
   })
-  date_time: Date;
+  warehouse: WareHouseEntity;
 
-  @Column({ type: 'varchar', name: 'warehouse' })
-  warehouse: string;
+  @ManyToOne(() => ItemEntity, (item) => item.transitionFlows, {
+    nullable: false,
+  })
+  item: ItemEntity;
 
-  @Column({ type: 'varchar', name: 'item' })
-  item: string;
-
-  @Column({ type: 'varchar', name: 'tag' })
-  tag: string;
+  @ManyToOne(() => TagEntity, (tag) => tag.transitionFlows, { nullable: false })
+  tag: TagEntity;
 
   @Column({
     type: 'enum',

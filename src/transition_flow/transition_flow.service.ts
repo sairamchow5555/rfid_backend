@@ -1,54 +1,110 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TransitionFlowEntity } from './entities/transition_flow.entity';
 import { Repository } from 'typeorm';
+import { TransitionFlowEntity } from './entities/transition_flow.entity';
 import { TransitionFlowReq } from './dto/transitionflow-req';
 import { TransitionFlowReponseModel } from './dto/transitionflow-response-model';
 import { TransitionFlowModel } from './dto/transitionflow-model';
 import { TransitionFlowStatusEnum } from './dto/transitionflow-status-enum';
 import { TransitionFlowIdReq } from './dto/transitionflow-id.req';
+import { ItemEntity } from 'src/items/entities/item.entity';
+import { TagEntity } from 'src/tag/entities/tag.entity';
+import { WareHouseEntity } from 'src/warehouse/entities/warehouse.entity';
+import { ItemStatusEnum } from 'src/items/dto/item-status-enum';
+import { TagStatusEnum } from 'src/tag/dto/tag-status-enum';
+import { WareHouseStatusEnum } from 'src/warehouse/dto/warehouse-status-enum';
 
 @Injectable()
 export class TransitionFlowService {
   constructor(
     @InjectRepository(TransitionFlowEntity)
     private readonly transitionFlowRepository: Repository<TransitionFlowEntity>,
+    @InjectRepository(ItemEntity)
+    private readonly itemRepository: Repository<ItemEntity>,
+    @InjectRepository(TagEntity)
+    private readonly tagRepository: Repository<TagEntity>,
+    @InjectRepository(WareHouseEntity)
+    private readonly warehouseRepository: Repository<WareHouseEntity>,
   ) {}
 
-  // create Transition Flow
+  // Create Transition Flow
   async createTransitionFlow(
     dto: TransitionFlowReq,
   ): Promise<TransitionFlowReponseModel> {
     try {
-      const Obj = new TransitionFlowEntity();
-      Obj.warehouse = dto.warehouse;
-      Obj.item = dto.item;
-      Obj.tag = dto.tag;
-      Obj.status = TransitionFlowStatusEnum.Active; // Set default status
+      const warehouse = await this.warehouseRepository.findOne({
+        where: { wareHouseName: dto.warehouse },
+      });
+      const item = await this.itemRepository.findOne({
+        where: { itemName: dto.item },
+      });
+      const tag = await this.tagRepository.findOne({
+        where: { tagId: dto.tag },
+      });
 
-      const saveObj = await this.transitionFlowRepository.save(Obj);
-      if (saveObj) {
-        return new TransitionFlowReponseModel(true, 1, 'Created Successfully', [
-          this.mapEntityToModel(saveObj),
-        ]);
-      } else {
-        return new TransitionFlowReponseModel(false, 0, 'Failed to Create', []);
+      if (!warehouse || !item || !tag) {
+        let invalidReference = [];
+        if (!warehouse) invalidReference.push('warehouse');
+        if (!item) invalidReference.push('item');
+        if (!tag) invalidReference.push('tag');
+
+        return new TransitionFlowReponseModel(
+          false,
+          0,
+          `Invalid ${invalidReference} provided`,
+          [],
+        );
       }
+
+      if (warehouse.status !== WareHouseStatusEnum.Active) {
+        return new TransitionFlowReponseModel(
+          false,
+          0,
+          'Warehouse is Inactive',
+          [],
+        );
+      }
+
+      if (item.status !== ItemStatusEnum.Active) {
+        return new TransitionFlowReponseModel(false, 0, 'Item is Inactive', []);
+      }
+
+      if (tag.status !== TagStatusEnum.Open) {
+        return new TransitionFlowReponseModel(false, 0, 'Tag is not open', []);
+      }
+
+      // Create and save the transition flow
+      const transitionFlow = new TransitionFlowEntity();
+      transitionFlow.warehouse = warehouse;
+      transitionFlow.item = item;
+      transitionFlow.tag = tag;
+      transitionFlow.status = TransitionFlowStatusEnum.Active; // Default status
+
+      const savedTransitionFlow =
+        await this.transitionFlowRepository.save(transitionFlow);
+
+      // Update the tag status to 'Inprogress'
+      tag.status = TagStatusEnum.Inprogress;
+      await this.tagRepository.save(tag);
+
+      return new TransitionFlowReponseModel(true, 1, 'Created Successfully', [
+        this.mapEntityToModel(savedTransitionFlow),
+      ]);
     } catch (error) {
       console.error(
-        'Error occurred while creating Item:',
+        'Error occurred while creating Transition Flow:',
         error.message,
         error.stack,
       ); // Log error details
-      throw new Error('Error occurred while creating Item');
+      throw new Error('Error occurred while creating Transition Flow');
     }
   }
 
-  // Get all transitions items
+  // Get all Transition Flows
   async getAllTransitionFlow(): Promise<TransitionFlowReponseModel> {
     try {
       const items = await this.transitionFlowRepository.find({
-        where: { status: TransitionFlowStatusEnum.Active },
+        relations: ['warehouse', 'item', 'tag'],
       });
 
       if (items.length === 0) {
@@ -71,21 +127,22 @@ export class TransitionFlowService {
       );
     } catch (error) {
       console.error(
-        'Error occurred while retrieving Items:',
+        'Error occurred while retrieving Transition Flows:',
         error.message,
         error.stack,
       ); // Log error details
-      throw new Error('Error occurred while retrieving Items');
+      throw new Error('Error occurred while retrieving Transition Flows');
     }
   }
 
-  // delete or inactive
+  // Delete or Inactivate Transition Flow
   async deleteTransitionFlow(
     transitionFlowIdReq: TransitionFlowIdReq,
   ): Promise<TransitionFlowReponseModel> {
     try {
       const transitionFlow = await this.transitionFlowRepository.findOne({
         where: { id: transitionFlowIdReq.id },
+        relations: ['tag'],
       });
 
       if (!transitionFlow) {
@@ -101,10 +158,15 @@ export class TransitionFlowService {
       transitionFlow.status = TransitionFlowStatusEnum.InActive;
       await this.transitionFlowRepository.save(transitionFlow);
 
+      // Update the related Tag status to 'Open'
+      const tag = transitionFlow.tag;
+      tag.status = TagStatusEnum.Open;
+      await this.tagRepository.save(tag);
+
       return new TransitionFlowReponseModel(
         true,
         1,
-        'Transition Flow Updated to InActive',
+        'Transition Flow Updated to InActive and Tag Status set to Open',
         [],
       );
     } catch (error) {
@@ -121,9 +183,9 @@ export class TransitionFlowService {
   private mapEntityToModel(entity: TransitionFlowEntity): TransitionFlowModel {
     return {
       id: entity.id,
-      warehouse: entity.warehouse,
-      item: entity.item,
-      tag: entity.tag,
+      warehouse: entity.warehouse.wareHouseName,
+      item: entity.item.itemName,
+      tag: entity.tag.tagId,
       status: entity.status,
     };
   }

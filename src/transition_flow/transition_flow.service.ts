@@ -45,7 +45,7 @@ export class TransitionFlowService {
         where: { itemName: dto.item },
       });
       const tag = await this.tagRepository.findOne({
-        where: { tagId: dto.tag },
+        where: { tagName: dto.tag },
       });
 
       if (!warehouse || !item || !tag) {

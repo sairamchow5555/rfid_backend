@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { WareHouseStatusEnum } from '../dto/warehouse-status-enum';
-@Entity('wareHouse')
+@Entity('warehouse')
 export class WareHouseEntity {
   @PrimaryGeneratedColumn({
     name: 'id',

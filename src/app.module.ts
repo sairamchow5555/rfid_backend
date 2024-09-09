@@ -7,6 +7,8 @@ import { ItemModule } from './items/item.module';
 import { TagModule } from './tag/tag.module';
 import { ItemEntity } from './items/entities/item.entity';
 import { TagEntity } from './tag/entities/tag.entity';
+import { WareHouseEntity } from './warehouse/entities/warehouse.entity';
+import { WareHouseModule } from './warehouse/warehouse.module';
 
 const config = new Config();
 
@@ -19,11 +21,12 @@ const config = new Config();
       username: config.username,
       password: config.password,
       database: config.database,
-      entities: [ItemEntity, TagEntity],
+      entities: [ItemEntity, TagEntity, WareHouseEntity],
       synchronize: true,
     }),
     ItemModule,
-    TagModule
+    TagModule,
+    WareHouseModule
   ],
   controllers: [AppController],
   providers: [AppService],

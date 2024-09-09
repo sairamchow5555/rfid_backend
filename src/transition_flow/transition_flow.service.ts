@@ -201,6 +201,7 @@ export class TransitionFlowService {
       item: entity.item.itemName,
       tag: entity.tag.tagId,
       status: entity.status,
+      tagName: entity.tag.tagName
     };
   }
 }

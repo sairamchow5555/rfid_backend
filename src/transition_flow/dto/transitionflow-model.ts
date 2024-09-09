@@ -6,6 +6,7 @@ export class TransitionFlowModel {
   item: string;
   tag: string;
   status: TransitionFlowStatusEnum;
+  tagName?: string;
 
   constructor(
     id: number,
@@ -13,11 +14,13 @@ export class TransitionFlowModel {
     item: string,
     tag: string,
     status: TransitionFlowStatusEnum,
+    tagName?: string,
   ) {
     this.id = id;
     this.warehouse = warehouse;
     this.item = item;
     this.tag = tag;
     this.status = status;
+    this.tagName = tagName;
   }
 }

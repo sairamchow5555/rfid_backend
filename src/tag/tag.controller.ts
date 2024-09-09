@@ -23,7 +23,12 @@ export class TagController {
   }
 
   @Post('getAllOpenTags')
-  findAll(): Promise<TagReponseModel> {
+  getAllOpenTags(): Promise<TagReponseModel> {
+    return this.tagService.getAllOpenTag();
+  }
+
+  @Post('getAllTags')
+  getAllTags(): Promise<TagReponseModel> {
     return this.tagService.getAllTag();
   }
 

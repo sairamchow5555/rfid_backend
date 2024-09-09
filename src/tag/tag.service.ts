@@ -30,23 +30,39 @@ export class TagService {
     const savedTag = await this.tagRepository.save(tagObj);
 
     if (savedTag) {
-      return new TagReponseModel(true, 201, 'Tag Created Successfully', [savedTag]);
+      return new TagReponseModel(true, 201, 'Tag Created Successfully', [
+        savedTag,
+      ]);
     } else {
       return new TagReponseModel(false, 400, 'Failed to create tag', []);
     }
   }
 
   // Get All Open Tags
-  async getAllTag(): Promise<TagReponseModel> {
-    const tags = await this.tagRepository.find({
-      where: { status: TagStatusEnum.Open },
-    });
-
-    if (tags.length === 0) {
-      return new TagReponseModel(false, 404, 'No Open tags found', []);
+  async getAllOpenTag(): Promise<TagReponseModel> {
+    try {
+      const tags = await this.tagRepository.find({
+        where: { status: TagStatusEnum.Open },
+      });
+      return new TagReponseModel(true, 200, 'Open Tags Retrieved', tags);
+    } catch (error) {
+      return new TagReponseModel(
+        false,
+        500,
+        'Failed to retrieve open tags',
+        [],
+      );
     }
+  }
 
-    return new TagReponseModel(true, 200, 'Open Tags Retrieved', tags);
+  // Get All Tags
+  async getAllTag(): Promise<TagReponseModel> {
+    try {
+      const tags = await this.tagRepository.find();
+      return new TagReponseModel(true, 200, 'Open Tags Retrieved', tags);
+    } catch (error) {
+      return new TagReponseModel(false, 500, 'Failed to retrieve tags', []);
+    }
   }
 
   // Update Tag
@@ -71,7 +87,9 @@ export class TagService {
     existingTag.status = dto.status;
 
     const updatedTag = await this.tagRepository.save(existingTag);
-    return new TagReponseModel(true, 200, 'Tag Updated Successfully', [updatedTag]);
+    return new TagReponseModel(true, 200, 'Tag Updated Successfully', [
+      updatedTag,
+    ]);
   }
 
   // Delete (Change status to 'Close')
@@ -85,6 +103,8 @@ export class TagService {
     tag.status = TagStatusEnum.Close;
     const updatedTag = await this.tagRepository.save(tag);
 
-    return new TagReponseModel(true, 200, 'Tag Deleted (Status set to Close)', [updatedTag]);
+    return new TagReponseModel(true, 200, 'Tag Deleted (Status set to Close)', [
+      updatedTag,
+    ]);
   }
 }
